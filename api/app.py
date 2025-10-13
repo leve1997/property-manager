@@ -1,18 +1,24 @@
 from flask import Flask, render_template
 from flask_cors import CORS
+import secrets
 from api.api import api_bp
 
 app = Flask(__name__)
+
+# Session configuration
+app.secret_key = secrets.token_hex(32)
+app.config["SESSION_COOKIE_SECURE"] = False
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_PERMANENT"] = True
 
 # CORS configuration
 CORS(
     app,
     supports_credentials=True,
-    resources={r"/api/*": {"origins": ["http://localhost:8000", "http://127.0.0.1:8000"]}},
-    allow_headers=["Content-Type", "Authorization"],
+    origins=["http://localhost:8000", "http://127.0.0.1:8000"],
+    allow_headers=["Content-Type"],
     methods=["GET", "POST", "OPTIONS"],
-    expose_headers=["Content-Type"],
-    max_age=3600
 )
 
 # Register API blueprint
