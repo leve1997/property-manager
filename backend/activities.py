@@ -23,24 +23,23 @@ def get_activities(filter_address=None, filter_date_from=None, filter_date_to=No
         base_query += " AND DATE(pa.activity_date) <= ?"
         params.append(filter_date_to)
 
-    conn = get_db()
-    cursor = conn.cursor()
+    with get_db() as conn:
+        cursor = conn.cursor()
 
-    cursor.execute(f"SELECT COUNT(*) {base_query}", params)
-    total = cursor.fetchone()[0]
+        cursor.execute(f"SELECT COUNT(*) {base_query}", params)
+        total = cursor.fetchone()[0]
 
-    offset = (page - 1) * per_page
-    cursor.execute(
-        f"""
-        SELECT pa.id, pa.activity_date, pa.note, l.address, u.username
-        {base_query}
-        ORDER BY pa.activity_date DESC
-        LIMIT ? OFFSET ?
-        """,
-        params + [per_page, offset]
-    )
-    rows = cursor.fetchall()
-    conn.close()
+        offset = (page - 1) * per_page
+        cursor.execute(
+            f"""
+            SELECT pa.id, pa.activity_date, pa.note, l.address, u.username
+            {base_query}
+            ORDER BY pa.activity_date DESC
+            LIMIT ? OFFSET ?
+            """,
+            params + [per_page, offset]
+        )
+        rows = cursor.fetchall()
 
     return [
         {
@@ -56,22 +55,18 @@ def get_activities(filter_address=None, filter_date_from=None, filter_date_to=No
 
 def create_activity(location_id, user_id, note):
     """Insert a new activity and return its ID."""
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO property_activities (location_id, user_id, note) VALUES (?, ?, ?)",
-        (location_id, user_id, note)
-    )
-    conn.commit()
-    activity_id = cursor.lastrowid
-    conn.close()
-    return activity_id
+    with get_db() as conn:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO property_activities (location_id, user_id, note) VALUES (?, ?, ?)",
+                (location_id, user_id, note)
+            )
+        return cursor.lastrowid
 
 
 def delete_activity(activity_id):
     """Delete an activity by ID."""
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM property_activities WHERE id = ?", (activity_id,))
-    conn.commit()
-    conn.close()
+    with get_db() as conn:
+        with conn:
+            conn.execute("DELETE FROM property_activities WHERE id = ?", (activity_id,))
