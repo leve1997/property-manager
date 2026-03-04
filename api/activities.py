@@ -5,6 +5,7 @@ import os
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, Response
 from backend.activities import get_activities, create_activity, delete_activity
 from backend.locations import get_or_create_location
+from backend.auth import get_all_usernames
 
 logger = logging.getLogger(__name__)
 
@@ -18,26 +19,37 @@ def index():
     filter_address = request.args.get('filter_address', '').strip()
     filter_date_from = request.args.get('filter_date_from', '').strip()
     filter_date_to = request.args.get('filter_date_to', '').strip()
+    filter_usernames = request.args.getlist('filter_usernames')
     page = int(request.args.get('page', 1))
 
     activities, total = get_activities(
         filter_address=filter_address or None,
         filter_date_from=filter_date_from or None,
         filter_date_to=filter_date_to or None,
+        filter_usernames=filter_usernames or None,
         page=page,
         per_page=PER_PAGE
     )
 
     total_pages = max(1, (total + PER_PAGE - 1) // PER_PAGE)
 
-    return render_template(
-        'index.html',
+    template_vars = dict(
         activities=activities,
         page=page,
         total_pages=total_pages,
         filter_address=filter_address,
         filter_date_from=filter_date_from,
         filter_date_to=filter_date_to,
+        filter_usernames=filter_usernames,
+    )
+
+    if request.args.get('partial') == '1':
+        return render_template('_table.html', **template_vars)
+
+    return render_template(
+        'index.html',
+        **template_vars,
+        all_usernames=get_all_usernames(),
         geoapify_api_key=os.getenv('GEOAPIFY_API_KEY', '')
     )
 
@@ -74,11 +86,13 @@ def export():
     filter_address = request.args.get('filter_address', '').strip()
     filter_date_from = request.args.get('filter_date_from', '').strip()
     filter_date_to = request.args.get('filter_date_to', '').strip()
+    filter_usernames = request.args.getlist('filter_usernames')
 
     activities, _ = get_activities(
         filter_address=filter_address or None,
         filter_date_from=filter_date_from or None,
         filter_date_to=filter_date_to or None,
+        filter_usernames=filter_usernames or None,
         page=1,
         per_page=100_000
     )

@@ -11,7 +11,7 @@
     <input type="hidden" name="address" id="address-hidden">
 
     <div class="form-grid">
-        <div class="form-group">
+        <div class="form-group full-width">
             <label for="address-input">Location / Address</label>
             <div class="autocomplete-wrapper">
                 <input
@@ -39,14 +39,52 @@
 <!-- Activity List -->
 <h2 class="section-title">Activities</h2>
 
-<!-- Filters -->
-<div class="filter-section">
-    <h3>Filter</h3>
-    <form method="GET" action="/">
+<!-- Top bar: filter toggle | search | export -->
+<div class="filter-toggle-row">
+    <button type="button" class="filter-toggle-btn" id="filter-toggle-btn" title="Filter">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        <span class="filter-active-dot{% if filter_date_from or filter_date_to or filter_usernames %} visible{% endif %}" id="filter-active-dot" title="Filters active"></span>
+    </button>
+
+    <div class="search-bar-wrapper">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input
+            type="text"
+            id="search-address"
+            class="search-bar-input"
+            placeholder="Search by address..."
+            autocomplete="off"
+            value="{{ filter_address }}"
+        >
+    </div>
+
+    <a id="export-btn" href="/activities/export?filter_address={{ filter_address|urlencode }}&filter_date_from={{ filter_date_from|urlencode }}&filter_date_to={{ filter_date_to|urlencode }}{% for u in filter_usernames %}&filter_usernames={{ u|urlencode }}{% endfor %}"
+       class="export-btn" title="Export CSV">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    </a>
+</div>
+
+<!-- Filter panel (date + logged by only) -->
+<div class="filter-section{% if filter_date_from or filter_date_to or filter_usernames %} open{% endif %}" id="filter-section">
+    <form method="GET" action="/" id="filter-form">
+        <input type="hidden" name="filter_address" id="filter-address-hidden" value="{{ filter_address }}">
         <div class="form-grid">
             <div class="form-group">
-                <label for="filter_address">Address</label>
-                <input type="text" id="filter_address" name="filter_address" placeholder="Search by address..." value="{{ filter_address }}">
+                <label>Logged by</label>
+                <div class="multiselect" id="user-multiselect">
+                    <button type="button" class="multiselect-toggle" id="user-multiselect-toggle">
+                        <span id="user-multiselect-label">Anyone</span>
+                        <span class="multiselect-arrow">&#9660;</span>
+                    </button>
+                    <div class="multiselect-dropdown" id="user-multiselect-dropdown">
+                        {% for username in all_usernames %}
+                        <label class="multiselect-option">
+                            <input type="checkbox" name="filter_usernames" value="{{ username }}"{% if username in filter_usernames %} checked{% endif %}>
+                            {{ username }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
             </div>
             <div class="form-group">
                 <label for="filter_date_from">Date from</label>
@@ -58,88 +96,19 @@
             </div>
         </div>
         <div class="filter-actions">
-            <button type="submit" class="search-btn">Search</button>
+            <button type="submit" class="search-btn">Apply</button>
             <a href="/" class="clear-btn">Clear</a>
         </div>
     </form>
 </div>
 
-<!-- Export -->
-<a href="/activities/export?filter_address={{ filter_address|urlencode }}&filter_date_from={{ filter_date_from|urlencode }}&filter_date_to={{ filter_date_to|urlencode }}"
-   class="export-btn">Export CSV</a>
-
-<!-- Table -->
-{% if activities %}
-<table class="activities-table">
-    <thead>
-        <tr>
-            <th>Date & Time</th>
-            <th>Address</th>
-            <th>Logged by</th>
-            <th>Note</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for activity in activities %}
-        <tr>
-            <td style="white-space:nowrap;">{{ activity.activity_date }}</td>
-            <td>{{ activity.address }}</td>
-            <td>{{ activity.username }}</td>
-            <td>{{ activity.note }}</td>
-            <td>
-                <form method="POST" action="/activities/{{ activity.id }}/delete"
-                      onsubmit="return confirm('Delete this activity?')">
-                    <button type="submit" class="delete-btn">Delete</button>
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
-<!-- Pagination -->
-{% if total_pages > 1 %}
-{% set fp = 'filter_address=' + filter_address|urlencode + '&filter_date_from=' + filter_date_from|urlencode + '&filter_date_to=' + filter_date_to|urlencode %}
-<div class="pagination">
-    {% if page > 1 %}
-        <a href="?page={{ page - 1 }}&{{ fp }}">← Prev</a>
-    {% else %}
-        <span class="disabled">← Prev</span>
-    {% endif %}
-
-    {% if page > 3 %}
-        <a href="?page=1&{{ fp }}">1</a>
-        {% if page > 4 %}<span class="disabled">…</span>{% endif %}
-    {% endif %}
-
-    {% for p in range([1, page - 2]|max, [total_pages + 1, page + 3]|min) %}
-        {% if p == page %}
-            <span class="current">{{ p }}</span>
-        {% else %}
-            <a href="?page={{ p }}&{{ fp }}">{{ p }}</a>
-        {% endif %}
-    {% endfor %}
-
-    {% if page < total_pages - 2 %}
-        {% if page < total_pages - 3 %}<span class="disabled">…</span>{% endif %}
-        <a href="?page={{ total_pages }}&{{ fp }}">{{ total_pages }}</a>
-    {% endif %}
-
-    {% if page < total_pages %}
-        <a href="?page={{ page + 1 }}&{{ fp }}">Next →</a>
-    {% else %}
-        <span class="disabled">Next →</span>
-    {% endif %}
+<!-- Table container (swapped by live search) -->
+<div id="table-container">
+    {% include '_table.html' %}
 </div>
-{% endif %}
-
-{% else %}
-<div class="no-results">No activities found.</div>
-{% endif %}
 
 <script>
-    // Geoapify autocomplete
+    // Geoapify autocomplete (add activity form)
     const GEOAPIFY_API_KEY = '{{ geoapify_api_key }}';
     const addressInput = document.getElementById('address-input');
     const addressHidden = document.getElementById('address-hidden');
@@ -157,7 +126,7 @@
         }
 
         debounceTimer = setTimeout(async () => {
-            const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&limit=5&apiKey=${GEOAPIFY_API_KEY}`;
+            const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&limit=5&lang=hr&filter=countrycode:hr&type=street&allowNonVerifiedHouseNumber=true&apiKey=${GEOAPIFY_API_KEY}`;
             try {
                 const res = await fetch(url);
                 const data = await res.json();
@@ -189,7 +158,6 @@
         }, 300);
     });
 
-    // Close dropdown on outside click
     document.addEventListener('click', function (e) {
         if (!addressInput.contains(e.target) && !dropdown.contains(e.target)) {
             dropdown.style.display = 'none';
@@ -203,6 +171,81 @@
             addressInput.style.borderColor = '#dc3545';
             addressInput.placeholder = 'Please select an address from the suggestions';
         }
+    });
+
+    // Collapsible filter panel
+    const filterToggleBtn = document.getElementById('filter-toggle-btn');
+    const filterSection = document.getElementById('filter-section');
+    filterToggleBtn.addEventListener('click', function () {
+        filterSection.classList.toggle('open');
+    });
+
+    // User multiselect dropdown
+    const msToggle = document.getElementById('user-multiselect-toggle');
+    const msDropdown = document.getElementById('user-multiselect-dropdown');
+    const msLabel = document.getElementById('user-multiselect-label');
+    const msCheckboxes = msDropdown.querySelectorAll('input[type="checkbox"]');
+
+    function updateMsLabel() {
+        const checked = [...msCheckboxes].filter(c => c.checked).map(c => c.value);
+        msLabel.textContent = checked.length === 0 ? 'Anyone' : checked.join(', ');
+    }
+
+    updateMsLabel();
+
+    msToggle.addEventListener('click', function (e) {
+        e.stopPropagation();
+        msDropdown.classList.toggle('open');
+    });
+
+    msCheckboxes.forEach(cb => cb.addEventListener('change', updateMsLabel));
+
+    document.addEventListener('click', function (e) {
+        if (!msToggle.contains(e.target) && !msDropdown.contains(e.target)) {
+            msDropdown.classList.remove('open');
+        }
+    });
+
+    // Live address search
+    const searchInput = document.getElementById('search-address');
+    const tableContainer = document.getElementById('table-container');
+    const filterAddressHidden = document.getElementById('filter-address-hidden');
+    const exportBtn = document.getElementById('export-btn');
+
+    function getFilterParams() {
+        const params = new URLSearchParams();
+        params.set('filter_address', searchInput.value.trim());
+        const dateFrom = document.getElementById('filter_date_from').value;
+        const dateTo = document.getElementById('filter_date_to').value;
+        if (dateFrom) params.set('filter_date_from', dateFrom);
+        if (dateTo) params.set('filter_date_to', dateTo);
+        [...msCheckboxes].filter(c => c.checked).forEach(c => params.append('filter_usernames', c.value));
+        return params;
+    }
+
+    function updateExportUrl(params) {
+        const exportParams = new URLSearchParams(params);
+        exportBtn.href = '/activities/export?' + exportParams.toString();
+    }
+
+    let searchDebounce;
+    searchInput.addEventListener('input', function () {
+        clearTimeout(searchDebounce);
+        filterAddressHidden.value = this.value.trim();
+        searchDebounce = setTimeout(async () => {
+            const params = getFilterParams();
+            params.set('partial', '1');
+            try {
+                const res = await fetch('/?' + params.toString());
+                tableContainer.innerHTML = await res.text();
+                updateExportUrl(getFilterParams());
+                // Update browser URL without reload
+                const urlParams = getFilterParams();
+                history.replaceState(null, '', '/?' + urlParams.toString());
+            } catch (err) {
+                console.error('Search error:', err);
+            }
+        }, 300);
     });
 </script>
 {% endblock %}

@@ -1,0 +1,75 @@
+{% if activities %}
+<table class="activities-table">
+    <thead>
+        <tr>
+            <th>Date & Time</th>
+            <th>Address</th>
+            <th>Logged by</th>
+            <th>Note</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for activity in activities %}
+        <tr>
+            <td data-label="Date" style="white-space:nowrap;">{{ activity.activity_date }}</td>
+            <td data-label="Address">{{ activity.address }}</td>
+            <td data-label="Logged by">{{ activity.username }}</td>
+            <td data-label="Note">{{ activity.note }}</td>
+            <td class="delete-cell">
+                <form method="POST" action="/activities/{{ activity.id }}/delete"
+                      onsubmit="return confirm('Delete this activity?')">
+                    <button type="submit" class="delete-btn" title="Delete">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                            <path d="M10 11v6"></path>
+                            <path d="M14 11v6"></path>
+                            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+                        </svg>
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if total_pages > 1 %}
+{% set fp = 'filter_address=' + filter_address|urlencode + '&filter_date_from=' + filter_date_from|urlencode + '&filter_date_to=' + filter_date_to|urlencode %}{% for u in filter_usernames %}{% set fp = fp + '&filter_usernames=' + u|urlencode %}{% endfor %}
+<div class="pagination">
+    {% if page > 1 %}
+        <a href="?page={{ page - 1 }}&{{ fp }}">← Prev</a>
+    {% else %}
+        <span class="disabled">← Prev</span>
+    {% endif %}
+
+    {% if page > 3 %}
+        <a href="?page=1&{{ fp }}">1</a>
+        {% if page > 4 %}<span class="disabled">…</span>{% endif %}
+    {% endif %}
+
+    {% for p in range([1, page - 2]|max, [total_pages + 1, page + 3]|min) %}
+        {% if p == page %}
+            <span class="current">{{ p }}</span>
+        {% else %}
+            <a href="?page={{ p }}&{{ fp }}">{{ p }}</a>
+        {% endif %}
+    {% endfor %}
+
+    {% if page < total_pages - 2 %}
+        {% if page < total_pages - 3 %}<span class="disabled">…</span>{% endif %}
+        <a href="?page={{ total_pages }}&{{ fp }}">{{ total_pages }}</a>
+    {% endif %}
+
+    {% if page < total_pages %}
+        <a href="?page={{ page + 1 }}&{{ fp }}">Next →</a>
+    {% else %}
+        <span class="disabled">Next →</span>
+    {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="no-results">No activities found.</div>
+{% endif %}

@@ -1,6 +1,14 @@
 from backend.database_connection import get_db
 import bcrypt
 
+def get_all_usernames():
+    """Return a list of all usernames sorted alphabetically."""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT username FROM users ORDER BY username")
+        return [row["username"] for row in cursor.fetchall()]
+
+
 def verify_user(username, password):
     """Verify user credentials and return username if valid, None otherwise."""
     with get_db() as conn:

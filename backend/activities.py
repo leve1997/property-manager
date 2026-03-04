@@ -2,7 +2,7 @@ from backend.database_connection import get_db
 
 
 def get_activities(filter_address=None, filter_date_from=None, filter_date_to=None,
-                   page=1, per_page=20):
+                   filter_usernames=None, page=1, per_page=20):
     """Fetch paginated activities with optional filters. Returns (rows, total_count)."""
 
     base_query = """
@@ -22,6 +22,10 @@ def get_activities(filter_address=None, filter_date_from=None, filter_date_to=No
     if filter_date_to:
         base_query += " AND DATE(pa.activity_date) <= ?"
         params.append(filter_date_to)
+    if filter_usernames:
+        placeholders = ",".join("?" * len(filter_usernames))
+        base_query += f" AND u.username IN ({placeholders})"
+        params.extend(filter_usernames)
 
     with get_db() as conn:
         cursor = conn.cursor()
@@ -59,7 +63,7 @@ def create_activity(location_id, user_id, note):
         with conn:
             cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO property_activities (location_id, user_id, note) VALUES (?, ?, ?)",
+                "INSERT INTO property_activities (location_id, user_id, activity_date, note) VALUES (?, ?, CURRENT_TIMESTAMP, ?)",
                 (location_id, user_id, note)
             )
         return cursor.lastrowid

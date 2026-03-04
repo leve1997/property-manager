@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def create_app():
-    app = Flask(__name__, instance_relative_config=True, template_folder='../templates')
+    app = Flask(__name__, instance_relative_config=True, template_folder='../templates', static_folder='../static')
     app.secret_key = os.environ['SECRET_KEY']
 
     logging.basicConfig(
