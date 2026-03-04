@@ -1,38 +1,92 @@
-from flask import Blueprint, request, jsonify
-from backend.activities import create_activity, get_all_activities, search_activities
+import csv
+import io
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, Response
+from backend.activities import get_activities, create_activity, delete_activity
+from backend.locations import get_or_create_location
+import os
 
-activities_bp = Blueprint('activities', __name__, url_prefix='/activities')
+activities_bp = Blueprint('activities', __name__)
 
-@activities_bp.route("/", methods=["GET", "POST"])
-def activities():
-    if request.method == "POST":
-        data = request.json or {}
-        required_fields = ["manager", "building", "date", "time", "description"]
-        if not all(data.get(field) for field in required_fields):
-            return jsonify({"error": "All fields are required"}), 400
-
-        activity_id = create_activity(
-            data["manager"],
-            data["building"],
-            data["date"],
-            data["time"],
-            data["description"]
-        )
-        return jsonify({"success": True, "id": activity_id})
-
-    activities_list = get_all_activities()
-    return jsonify(activities_list)
+PER_PAGE = 20
 
 
-@activities_bp.route("/search", methods=["GET"])
-def search_activities():
-    manager = request.args.get("manager", "")
-    building = request.args.get("building", "")
-    date = request.args.get("date", "")
+@activities_bp.route('/')
+def index():
+    filter_address = request.args.get('filter_address', '').strip()
+    filter_date_from = request.args.get('filter_date_from', '').strip()
+    filter_date_to = request.args.get('filter_date_to', '').strip()
+    page = int(request.args.get('page', 1))
 
-    activities_list = search_activities(
-        manager=manager if manager else None,
-        building=building if building else None,
-        date=date if date else None
+    activities, total = get_activities(
+        filter_address=filter_address or None,
+        filter_date_from=filter_date_from or None,
+        filter_date_to=filter_date_to or None,
+        page=page,
+        per_page=PER_PAGE
     )
-    return jsonify(activities_list)
+
+    total_pages = max(1, (total + PER_PAGE - 1) // PER_PAGE)
+
+    return render_template(
+        'index.html',
+        activities=activities,
+        page=page,
+        total_pages=total_pages,
+        filter_address=filter_address,
+        filter_date_from=filter_date_from,
+        filter_date_to=filter_date_to,
+        geoapify_api_key=os.getenv('GEOAPIFY_API_KEY', '')
+    )
+
+
+@activities_bp.route('/activities', methods=['POST'])
+def create():
+    address = request.form.get('address', '').strip()
+    note = request.form.get('note', '').strip()
+
+    if not all([address, note]):
+        flash('Address and note are required.', 'error')
+        return redirect(url_for('activities.index'))
+
+    location_id = get_or_create_location(address)
+    user_id = session.get('user_id', 1)
+
+    create_activity(location_id=location_id, user_id=user_id, note=note)
+
+    flash('Activity saved.', 'success')
+    return redirect(url_for('activities.index'))
+
+
+@activities_bp.route('/activities/<int:activity_id>/delete', methods=['POST'])
+def delete(activity_id):
+    delete_activity(activity_id)
+    flash('Activity deleted.', 'success')
+    return redirect(url_for('activities.index'))
+
+
+@activities_bp.route('/activities/export')
+def export():
+    filter_address = request.args.get('filter_address', '').strip()
+    filter_date_from = request.args.get('filter_date_from', '').strip()
+    filter_date_to = request.args.get('filter_date_to', '').strip()
+
+    activities, _ = get_activities(
+        filter_address=filter_address or None,
+        filter_date_from=filter_date_from or None,
+        filter_date_to=filter_date_to or None,
+        page=1,
+        per_page=100_000
+    )
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['Date & Time', 'Address', 'Note', 'Logged By'])
+    for a in activities:
+        writer.writerow([a['activity_date'], a['address'], a['note'], a['username']])
+
+    output.seek(0)
+    return Response(
+        output,
+        mimetype='text/csv',
+        headers={'Content-Disposition': 'attachment; filename=activities.csv'}
+    )

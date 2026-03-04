@@ -1,35 +1,29 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, redirect, url_for, session, flash
 from backend.auth import verify_user
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 
-@auth_bp.route("/login", methods=["POST", "OPTIONS"])
+@auth_bp.route("/login", methods=["POST"])
 def login():
-    if request.method == "OPTIONS":
-        return "", 204
-
-    data = request.json or {}
-    username = data.get("username", "").strip()
-    password = data.get("password", "")
+    username = request.form.get("username", "").strip()
+    password = request.form.get("password", "")
 
     if not username or not password:
-        return jsonify({"error": "Username and password required"}), 400
+        flash("Username and password required.", "error")
+        return redirect(url_for("activities.index"))
 
     verified_username = verify_user(username, password)
     if verified_username:
-        return jsonify({"success": True, "username": verified_username})
+        session["username"] = verified_username
+        return redirect(url_for("activities.index"))
 
-    return jsonify({"error": "Invalid username or password"}), 401
-
-
-@auth_bp.route("/check-auth", methods=["GET"])
-def check_auth():
-    # Always return logged in for MVP (no session)
-    return jsonify({"logged_in": True, "username": "admin"})
+    flash("Invalid username or password.", "error")
+    return redirect(url_for("activities.index"))
 
 
 @auth_bp.route("/logout", methods=["POST"])
 def logout():
-    return jsonify({"success": True})
+    session.clear()
+    return redirect(url_for("activities.index"))
 

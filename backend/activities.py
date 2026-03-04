@@ -1,36 +1,66 @@
 from backend.database_connection import get_db
 
-def get_all_activities():
-    """Fetch all activities ordered by date and time descending."""
+
+def get_activities(filter_address=None, filter_date_from=None, filter_date_to=None,
+                   page=1, per_page=20):
+    """Fetch paginated activities with optional filters. Returns (rows, total_count)."""
+
+    base_query = """
+        FROM property_activities pa
+        JOIN locations l ON pa.location_id = l.id
+        JOIN users u ON pa.user_id = u.id
+        WHERE 1=1
+    """
+    params = []
+
+    if filter_address:
+        base_query += " AND l.address LIKE ?"
+        params.append(f"%{filter_address}%")
+    if filter_date_from:
+        base_query += " AND DATE(pa.activity_date) >= ?"
+        params.append(filter_date_from)
+    if filter_date_to:
+        base_query += " AND DATE(pa.activity_date) <= ?"
+        params.append(filter_date_to)
+
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM activities ORDER BY date DESC, time DESC")
+
+    cursor.execute(f"SELECT COUNT(*) {base_query}", params)
+    total = cursor.fetchone()[0]
+
+    offset = (page - 1) * per_page
+    cursor.execute(
+        f"""
+        SELECT pa.id, pa.activity_date, pa.note, l.address, u.username
+        {base_query}
+        ORDER BY pa.activity_date DESC
+        LIMIT ? OFFSET ?
+        """,
+        params + [per_page, offset]
+    )
     rows = cursor.fetchall()
     conn.close()
 
     return [
         {
             "id": row["id"],
-            "manager": row["manager"],
-            "building": row["building"],
-            "date": row["date"],
-            "time": row["time"],
-            "description": row["description"],
+            "activity_date": row["activity_date"],
+            "note": row["note"],
+            "address": row["address"],
+            "username": row["username"],
         }
         for row in rows
-    ]
+    ], total
 
 
-def create_activity(manager, building, date, time, description):
-    """Create a new activity and return its ID."""
+def create_activity(location_id, user_id, note):
+    """Insert a new activity and return its ID."""
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute(
-        """
-        INSERT INTO activities (manager, building, date, time, description)
-        VALUES (?, ?, ?, ?, ?)
-        """,
-        (manager, building, date, time, description),
+        "INSERT INTO property_activities (location_id, user_id, note) VALUES (?, ?, ?)",
+        (location_id, user_id, note)
     )
     conn.commit()
     activity_id = cursor.lastrowid
@@ -38,37 +68,10 @@ def create_activity(manager, building, date, time, description):
     return activity_id
 
 
-def search_activities(manager=None, building=None, date=None):
-    """Search activities with optional filters."""
-    query = "SELECT * FROM activities WHERE 1 = 1"
-    params = []
-
-    if manager:
-        query += " AND manager LIKE ?"
-        params.append(f"%{manager}%")
-    if building:
-        query += " AND building LIKE ?"
-        params.append(f"%{building}%")
-    if date:
-        query += " AND date = ?"
-        params.append(date)
-
-    query += " ORDER BY date DESC, time DESC"
-
+def delete_activity(activity_id):
+    """Delete an activity by ID."""
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute(query, params)
-    rows = cursor.fetchall()
+    cursor.execute("DELETE FROM property_activities WHERE id = ?", (activity_id,))
+    conn.commit()
     conn.close()
-
-    return [
-        {
-            "id": row["id"],
-            "manager": row["manager"],
-            "building": row["building"],
-            "date": row["date"],
-            "time": row["time"],
-            "description": row["description"],
-        }
-        for row in rows
-    ]

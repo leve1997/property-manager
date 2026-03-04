@@ -1,18 +1,12 @@
+import os
 from flask import Flask
-from flask_cors import CORS
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def create_app():
-    app = Flask(__name__, instance_relative_config=True)
-
-    CORS(
-    app,
-    supports_credentials=True,
-    resources={r"/api/*": {"origins": ["http://localhost:8000", "http://127.0.0.1:8000"]}}, # Update for production
-    allow_headers=["Content-Type", "Authorization"],
-    methods=["GET", "POST", "OPTIONS"],
-    expose_headers=["Content-Type"],
-    max_age=3600
-)
+    app = Flask(__name__, instance_relative_config=True, template_folder='../templates')
+    app.secret_key = os.environ['SECRET_KEY']
 
     from api.auth import auth_bp
     app.register_blueprint(auth_bp)

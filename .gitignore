@@ -2,6 +2,4 @@
 __pycache__/*
 .env
 .venv
-
-backend/init_db.py
-.claude
+backend/database.db
