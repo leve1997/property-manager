@@ -1,6 +1,9 @@
 import sqlite3
 import os
+import logging
 from contextlib import contextmanager
+
+logger = logging.getLogger(__name__)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _default_db_path = os.path.join(BASE_DIR, "backend", "database.db")
@@ -16,5 +19,8 @@ def get_db():
     conn.execute("PRAGMA foreign_keys=ON;")
     try:
         yield conn
+    except Exception:
+        logger.exception("Unhandled exception during database operation")
+        raise
     finally:
         conn.close()

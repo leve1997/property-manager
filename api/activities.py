@@ -1,9 +1,12 @@
 import csv
 import io
+import logging
+import os
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, Response
 from backend.activities import get_activities, create_activity, delete_activity
 from backend.locations import get_or_create_location
-import os
+
+logger = logging.getLogger(__name__)
 
 activities_bp = Blueprint('activities', __name__)
 
@@ -53,6 +56,7 @@ def create():
 
     create_activity(location_id=location_id, user_id=user_id, note=note)
 
+    logger.info("User '%s' created activity at '%s'", session.get('username'), address)
     flash('Activity saved.', 'success')
     return redirect(url_for('activities.index'))
 
@@ -60,6 +64,7 @@ def create():
 @activities_bp.route('/activities/<int:activity_id>/delete', methods=['POST'])
 def delete(activity_id):
     delete_activity(activity_id)
+    logger.info("User '%s' deleted activity id=%d", session.get('username'), activity_id)
     flash('Activity deleted.', 'success')
     return redirect(url_for('activities.index'))
 
