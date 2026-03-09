@@ -12,9 +12,9 @@ DB_PATH = Path(os.getenv("DB_PATH", str(BASE_DIR / "backend" / "database.db")))
 
 # Default users — loaded from environment variables
 USERS = [
-    ("admin", os.getenv("PASSWORD_ADMIN")),
-    ("user1", os.getenv("PASSWORD_USER1")),
-    ("user2", os.getenv("PASSWORD_USER2")),
+    (os.getenv("USERNAME_ADMIN", "admin"), os.getenv("PASSWORD_ADMIN")),
+    (os.getenv("USERNAME_USER1", "user1"), os.getenv("PASSWORD_USER1")),
+    (os.getenv("USERNAME_USER2", "user2"), os.getenv("PASSWORD_USER2")),
 ]
 
 
