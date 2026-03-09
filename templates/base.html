@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,7 +14,7 @@
                 {% if session.username %}
                 <span style="font-size:14px; opacity:0.85;">{{ session.username }}</span>
                 <form method="POST" action="/auth/logout" style="margin:0;">
-                    <button type="submit" class="logout-btn">Logout</button>
+                    <button type="submit" class="logout-btn">Odjava</button>
                 </form>
                 {% endif %}
             </div>

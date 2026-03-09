@@ -2,23 +2,23 @@
 <table class="activities-table">
     <thead>
         <tr>
-            <th>Date & Time</th>
-            <th>Address</th>
-            <th>Logged by</th>
-            <th>Note</th>
+            <th>Datum i vrijeme</th>
+            <th>Adresa</th>
+            <th>Unio/la</th>
+            <th>Napomena</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
         {% for activity in activities %}
         <tr>
-            <td data-label="Date" style="white-space:nowrap;">{{ activity.activity_date }}</td>
-            <td data-label="Address">{{ activity.address }}</td>
-            <td data-label="Logged by">{{ activity.username }}</td>
-            <td data-label="Note">{{ activity.note }}</td>
+            <td data-label="Datum i vrijeme" style="white-space:nowrap;">{{ activity.activity_date }}</td>
+            <td data-label="Adresa">{{ activity.address }}</td>
+            <td data-label="Unio/la">{{ activity.username }}</td>
+            <td data-label="Napomena">{{ activity.note }}</td>
             <td class="delete-cell">
                 <form method="POST" action="/activities/{{ activity.id }}/delete"
-                      onsubmit="return confirm('Delete this activity?')">
+                      onsubmit="return confirm('Obrisati ovu aktivnost?')">
                     <button type="submit" class="delete-btn" title="Delete">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="3 6 5 6 21 6"></polyline>
@@ -39,9 +39,9 @@
 {% set fp = 'filter_address=' + filter_address|urlencode + '&filter_date_from=' + filter_date_from|urlencode + '&filter_date_to=' + filter_date_to|urlencode %}{% for u in filter_usernames %}{% set fp = fp + '&filter_usernames=' + u|urlencode %}{% endfor %}
 <div class="pagination">
     {% if page > 1 %}
-        <a href="?page={{ page - 1 }}&{{ fp }}">← Prev</a>
+        <a href="?page={{ page - 1 }}&{{ fp }}">← Preth.</a>
     {% else %}
-        <span class="disabled">← Prev</span>
+        <span class="disabled">← Preth.</span>
     {% endif %}
 
     {% if page > 3 %}
@@ -63,13 +63,13 @@
     {% endif %}
 
     {% if page < total_pages %}
-        <a href="?page={{ page + 1 }}&{{ fp }}">Next →</a>
+        <a href="?page={{ page + 1 }}&{{ fp }}">Sljedeća →</a>
     {% else %}
-        <span class="disabled">Next →</span>
+        <span class="disabled">Sljedeća →</span>
     {% endif %}
 </div>
 {% endif %}
 
 {% else %}
-<div class="no-results">No activities found.</div>
+<div class="no-results">Nema pronađenih aktivnosti.</div>
 {% endif %}
