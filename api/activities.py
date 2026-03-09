@@ -14,6 +14,12 @@ activities_bp = Blueprint('activities', __name__)
 PER_PAGE = 20
 
 
+@activities_bp.before_request
+def require_login():
+    if not session.get("username"):
+        return redirect(url_for("auth.login"))
+
+
 @activities_bp.route('/')
 def index():
     filter_address = request.args.get('filter_address', '').strip()
@@ -64,7 +70,7 @@ def create():
         return redirect(url_for('activities.index'))
 
     location_id = get_or_create_location(address)
-    user_id = session.get('user_id', 1)
+    user_id = session["user_id"]
 
     create_activity(location_id=location_id, user_id=user_id, note=note)
 

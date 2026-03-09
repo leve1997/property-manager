@@ -10,12 +10,12 @@ def get_all_usernames():
 
 
 def verify_user(username, password):
-    """Verify user credentials and return username if valid, None otherwise."""
+    """Verify user credentials and return (username, user_id) if valid, None otherwise."""
     with get_db() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT password_hash FROM users WHERE username = ?", (username,))
+        cursor.execute("SELECT id, password_hash FROM users WHERE username = ?", (username,))
         row = cursor.fetchone()
 
     if row and bcrypt.checkpw(password.encode("utf-8"), row["password_hash"]):
-        return username
+        return username, row["id"]
     return None
