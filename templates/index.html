@@ -133,14 +133,22 @@
                 const features = data.features || [];
 
                 if (features.length === 0) {
-                    dropdown.style.display = 'none';
+                    dropdown.innerHTML = `<div class="autocomplete-item autocomplete-item--manual" data-address="${query.replace(/"/g, '&quot;')}">&#43; Use "${query}" as entered</div>`;
+                    dropdown.style.display = 'block';
+                    dropdown.querySelector('.autocomplete-item').addEventListener('click', function () {
+                        addressInput.value = this.dataset.address;
+                        addressHidden.value = this.dataset.address;
+                        dropdown.style.display = 'none';
+                    });
                     return;
                 }
 
-                dropdown.innerHTML = features.map(f => {
+                const items = features.map(f => {
                     const label = f.properties.formatted;
                     return `<div class="autocomplete-item" data-address="${label}">${label}</div>`;
-                }).join('');
+                });
+                items.push(`<div class="autocomplete-item autocomplete-item--manual" data-address="${query.replace(/"/g, '&quot;')}">&#43; Use "${query}" as entered</div>`);
+                dropdown.innerHTML = items.join('');
 
                 dropdown.style.display = 'block';
 
@@ -154,6 +162,14 @@
                 });
             } catch (err) {
                 console.error('Geoapify error:', err);
+                const q = query.replace(/"/g, '&quot;');
+                dropdown.innerHTML = `<div class="autocomplete-item autocomplete-item--manual" data-address="${q}">&#43; Use "${query}" as entered</div>`;
+                dropdown.style.display = 'block';
+                dropdown.querySelector('.autocomplete-item').addEventListener('click', function () {
+                    addressInput.value = this.dataset.address;
+                    addressHidden.value = this.dataset.address;
+                    dropdown.style.display = 'none';
+                });
             }
         }, 300);
     });
