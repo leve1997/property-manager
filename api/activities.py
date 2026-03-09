@@ -2,7 +2,7 @@ import csv
 import io
 import logging
 import os
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, Response
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, Response, make_response
 from backend.activities import get_activities, create_activity, delete_activity
 from backend.locations import get_or_create_location
 from backend.auth import get_all_usernames
@@ -53,12 +53,14 @@ def index():
     if request.args.get('partial') == '1':
         return render_template('_table.html', **template_vars)
 
-    return render_template(
+    response = make_response(render_template(
         'index.html',
         **template_vars,
         all_usernames=get_all_usernames(),
         geoapify_api_key=os.getenv('GEOAPIFY_API_KEY', '')
-    )
+    ))
+    response.headers['Cache-Control'] = 'no-store'
+    return response
 
 
 @activities_bp.route('/activities', methods=['POST'])
