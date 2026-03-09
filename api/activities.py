@@ -20,6 +20,7 @@ def require_login():
         return redirect(url_for("auth.login"))
 
 
+
 @activities_bp.route('/')
 def index():
     filter_address = request.args.get('filter_address', '').strip()

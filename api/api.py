@@ -1,6 +1,6 @@
 import os
 import logging
-from flask import Flask
+from flask import Flask, send_from_directory
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -20,6 +20,11 @@ def create_app():
 
     from api.activities import activities_bp
     app.register_blueprint(activities_bp)
+
+    @app.route('/service-worker.js')
+    def service_worker():
+        return send_from_directory(app.static_folder, 'service-worker.js',
+                                   mimetype='application/javascript')
 
     return app
 
