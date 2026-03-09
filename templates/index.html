@@ -126,7 +126,7 @@
         }
 
         debounceTimer = setTimeout(async () => {
-            const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&limit=5&lang=hr&filter=countrycode:hr&type=street&allowNonVerifiedHouseNumber=true&apiKey=${GEOAPIFY_API_KEY}`;
+            const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&limit=5&lang=hr&filter=countrycode:hr&allowNonVerifiedHouseNumber=true&apiKey=${GEOAPIFY_API_KEY}`;
             try {
                 const res = await fetch(url);
                 const data = await res.json();

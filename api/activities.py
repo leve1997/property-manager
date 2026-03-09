@@ -75,9 +75,12 @@ def create():
 
 @activities_bp.route('/activities/<int:activity_id>/delete', methods=['POST'])
 def delete(activity_id):
-    delete_activity(activity_id)
-    logger.info("User '%s' deleted activity id=%d", session.get('username'), activity_id)
-    flash('Activity deleted.', 'success')
+    if delete_activity(activity_id):
+        logger.info("User '%s' deleted activity id=%d", session.get('username'), activity_id)
+        flash('Activity deleted.', 'success')
+    else:
+        logger.warning("User '%s' tried to delete non-existent activity id=%d", session.get('username'), activity_id)
+        flash('Activity not found.', 'error')
     return redirect(url_for('activities.index'))
 
 
@@ -98,6 +101,7 @@ def export():
     )
 
     output = io.StringIO()
+    output.write('sep=,\r\n')
     writer = csv.writer(output)
     writer.writerow(['Date & Time', 'Address', 'Note', 'Logged By'])
     for a in activities:

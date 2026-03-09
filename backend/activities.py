@@ -70,7 +70,8 @@ def create_activity(location_id, user_id, note):
 
 
 def delete_activity(activity_id):
-    """Delete an activity by ID."""
+    """Delete an activity by ID. Returns True if deleted, False if not found."""
     with get_db() as conn:
         with conn:
-            conn.execute("DELETE FROM property_activities WHERE id = ?", (activity_id,))
+            cursor = conn.execute("DELETE FROM property_activities WHERE id = ?", (activity_id,))
+        return cursor.rowcount > 0
