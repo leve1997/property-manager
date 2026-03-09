@@ -1,6 +1,5 @@
-const CACHE_NAME = 'property-manager-v1';
+const CACHE_NAME = 'property-manager-v2';
 const APP_SHELL = [
-  '/',
   '/static/css/main.css',
   '/static/manifest.json',
 ];
