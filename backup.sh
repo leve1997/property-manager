@@ -37,8 +37,7 @@ s3cmd put "$BACKUP_FILE" "$S3_PATH" \
     --access_key="$SPACES_KEY" \
     --secret_key="$SPACES_SECRET" \
     --host="$S3_ENDPOINT" \
-    --host-bucket="https://%(bucket)s.${SPACES_REGION}.digitaloceanspaces.com" \
-    --no-ssl-check
+    --host-bucket="https://%(bucket)s.${SPACES_REGION}.digitaloceanspaces.com"
 
 echo "[$(date)] Uploaded to $S3_PATH"
 
