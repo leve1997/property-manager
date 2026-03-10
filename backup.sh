@@ -13,6 +13,12 @@ if [ -f "$SCRIPT_DIR/.env" ]; then
     set +a
 fi
 
+# Resolve DB_PATH relative to script dir if it's not absolute
+if [[ -n "$DB_PATH" && "$DB_PATH" != /* ]]; then
+    DB_PATH="$SCRIPT_DIR/$DB_PATH"
+fi
+DB_PATH="${DB_PATH:-$SCRIPT_DIR/backend/database.db}"
+
 # Validate required vars
 : "${DB_PATH:?DB_PATH not set}"
 : "${SPACES_KEY:?SPACES_KEY not set}"
