@@ -15,6 +15,8 @@ USERS = [
     (os.getenv("USERNAME_ADMIN", "admin"), os.getenv("PASSWORD_ADMIN")),
     (os.getenv("USERNAME_USER1", "user1"), os.getenv("PASSWORD_USER1")),
     (os.getenv("USERNAME_USER2", "user2"), os.getenv("PASSWORD_USER2")),
+    (os.getenv("USERNAME_USER3", "user3"), os.getenv("PASSWORD_USER3")),
+    (os.getenv("USERNAME_USER4", "user4"), os.getenv("PASSWORD_USER4")),
 ]
 
 
