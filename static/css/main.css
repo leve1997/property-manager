@@ -381,7 +381,7 @@ body {
     }
 
     /* Date — small, muted, top-left */
-    .activities-table td[data-label="Date"] {
+    .activities-table td[data-label="Datum i vrijeme"] {
         grid-column: 1;
         grid-row: 1;
         font-size: 11px;
@@ -406,7 +406,7 @@ body {
     }
 
     /* Address — prominent, large */
-    .activities-table td[data-label="Address"] {
+    .activities-table td[data-label="Adresa"] {
         grid-column: 1;
         grid-row: 2;
         font-size: 15px;
@@ -418,7 +418,7 @@ body {
     }
 
     /* Logged by — small secondary line */
-    .activities-table td[data-label="Logged by"] {
+    .activities-table td[data-label="Unio/la"] {
         grid-column: 1;
         grid-row: 3;
         font-size: 12px;
@@ -428,7 +428,7 @@ body {
     }
 
     /* Note — full width below the grid */
-    .activities-table td[data-label="Note"] {
+    .activities-table td[data-label="Napomena"] {
         grid-column: 1 / 3;
         grid-row: 4;
         font-size: 13px;

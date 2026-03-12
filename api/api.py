@@ -1,13 +1,28 @@
 import os
 import logging
+from datetime import datetime
 from flask import Flask, send_from_directory
 from dotenv import load_dotenv
 
 load_dotenv()
 
+
+def format_hr_datetime(value):
+    """Format a SQLite datetime string as Croatian standard: D.M.YYYY. H:MM"""
+    if not value:
+        return ''
+    try:
+        dt = datetime.strptime(str(value)[:16], '%Y-%m-%d %H:%M')
+        return f"{dt.day}.{dt.month}.{dt.year}. {dt.hour}:{dt.minute:02d}"
+    except ValueError:
+        return value
+
+
 def create_app():
     app = Flask(__name__, instance_relative_config=True, template_folder='../templates', static_folder='../static')
     app.secret_key = os.environ['SECRET_KEY']
+
+    app.jinja_env.filters['hr_datetime'] = format_hr_datetime
 
     logging.basicConfig(
         level=logging.INFO,

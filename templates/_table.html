@@ -12,7 +12,7 @@
     <tbody>
         {% for activity in activities %}
         <tr>
-            <td data-label="Datum i vrijeme" style="white-space:nowrap;">{{ activity.activity_date }}</td>
+            <td data-label="Datum i vrijeme" style="white-space:nowrap;">{{ activity.activity_date | hr_datetime }}</td>
             <td data-label="Adresa">{{ activity.address }}</td>
             <td data-label="Unio/la">{{ activity.username }}</td>
             <td data-label="Napomena">{{ activity.note }}</td>

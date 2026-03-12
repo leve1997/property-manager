@@ -4,6 +4,7 @@ import logging
 import os
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, Response, make_response
 from backend.activities import get_activities, create_activity, delete_activity
+from api.api import format_hr_datetime
 from backend.locations import get_or_create_location
 from backend.auth import get_all_usernames
 
@@ -114,7 +115,7 @@ def export():
     writer = csv.writer(output)
     writer.writerow(['Date & Time', 'Address', 'Note', 'Logged By'])
     for a in activities:
-        writer.writerow([a['activity_date'], a['address'], a['note'], a['username']])
+        writer.writerow([format_hr_datetime(a['activity_date']), a['address'], a['note'], a['username']])
 
     output.seek(0)
     return Response(
